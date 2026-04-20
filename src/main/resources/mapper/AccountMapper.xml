@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.tuum.mapper.AccountMapper">
+
+    <resultMap id="AccountResultMap" type="org.example.tuum.entity.Account">
+        <id     property="id"         column="id"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="country"    column="country"
+                javaType="org.example.tuum.entity.Country"
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.tuum.entity.Account"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO account (customer_id, country)
+        VALUES (#{customerId}, #{country, typeHandler=org.apache.ibatis.type.EnumTypeHandler})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="AccountResultMap">
+        SELECT id, customer_id, country
+        FROM account
+        WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="AccountResultMap">
+        SELECT id, customer_id, country
+        FROM account
+    </select>
+
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.tuum.mapper.AccountBalanceMapper">
+
+    <resultMap id="AccountBalanceResultMap" type="org.example.tuum.entity.AccountBalance">
+        <id     property="id"              column="id"/>
+        <result property="accountId"       column="account_id"/>
+        <result property="currency"        column="currency"
+                javaType="org.example.tuum.entity.Currency"
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="availableAmount" column="available_amount"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="org.example.tuum.entity.AccountBalance"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO account_balance (account_id, currency, available_amount)
+        VALUES (#{accountId}, #{currency, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, #{availableAmount})
+    </insert>
+
+    <select id="findByAccountId" parameterType="long" resultMap="AccountBalanceResultMap">
+        SELECT id, account_id, currency, available_amount
+        FROM account_balance
+        WHERE account_id = #{accountId}
+    </select>
+
+    <update id="updateAvailableAmount">
+        UPDATE account_balance
+        SET available_amount = #{availableAmount}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
