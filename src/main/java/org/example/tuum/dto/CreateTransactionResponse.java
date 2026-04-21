@@ -5,7 +5,7 @@ import org.example.tuum.entity.Direction;
 
 import java.math.BigDecimal;
 
-public record TransactionResponse(
+public record CreateTransactionResponse(
         Long accountId,
         Long transactionId,
         BigDecimal amount,

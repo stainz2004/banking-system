@@ -31,4 +31,11 @@
         WHERE id = #{id}
     </update>
 
+    <select id="findByAccountIdAndCurrency" resultMap="AccountBalanceResultMap">
+        SELECT id, account_id, currency, available_amount
+        FROM account_balance
+        WHERE account_id = #{accountId}
+          AND currency = #{currency, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+    </select>
+
 </mapper>

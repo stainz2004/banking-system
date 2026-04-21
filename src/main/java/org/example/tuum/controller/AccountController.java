@@ -28,6 +28,6 @@ public class AccountController {
 
     @GetMapping
     public ResponseEntity<AccountResponse> getAccount(@RequestParam Long customerId) {
-        return ResponseEntity.ok(accountService.getAccountByCustomerId(customerId));
+        return ResponseEntity.ok(accountService.getAccountByAccountId(customerId));
     }
 }

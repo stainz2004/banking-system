@@ -8,6 +8,7 @@ import org.example.tuum.dto.CreateAccountRequest;
 import org.example.tuum.dto.AccountResponse;
 import org.example.tuum.entity.Account;
 import org.example.tuum.entity.AccountBalance;
+import org.example.tuum.exception.AccountNotFoundException;
 import org.example.tuum.mapper.AccountBalanceMapper;
 import org.example.tuum.mapper.AccountMapper;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,10 @@ public class AccountService {
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
         Account account = accountConverter.toEntity(request);
-        Long accountId = account.getId();
 
         accountMapper.insert(account);
+
+        Long accountId = account.getId();
 
         List<BalanceResponse> balances = request.currencies().stream()
                 .map(currency -> {
@@ -59,8 +61,13 @@ public class AccountService {
      * @param accountId The ID of the account to retrieve.
      * @return An AccountResponse containing account details and associated balances.
      */
-    public AccountResponse getAccountByCustomerId(Long accountId) {
+    @Transactional(readOnly = true)
+    public AccountResponse getAccountByAccountId(Long accountId) {
         Account account = accountMapper.findById(accountId);
+
+        if (account == null) {
+            throw new AccountNotFoundException("Account not found for account ID: " + accountId);
+        }
 
         List<AccountBalance> balances = accountBalanceMapper.findByAccountId(accountId);
         List<BalanceResponse> balanceResponses = accountBalanceConverter.toResponse(balances);
