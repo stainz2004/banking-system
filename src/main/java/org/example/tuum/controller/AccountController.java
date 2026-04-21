@@ -27,7 +27,7 @@ public class AccountController {
     }
 
     @GetMapping
-    public ResponseEntity<AccountResponse> getAccount(@RequestParam Long customerId) {
-        return ResponseEntity.ok(accountService.getAccountByAccountId(customerId));
+    public ResponseEntity<AccountResponse> getAccount(@RequestParam Long accountId) {
+        return ResponseEntity.ok(accountService.getAccountByAccountId(accountId));
     }
 }

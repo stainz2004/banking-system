@@ -9,9 +9,13 @@ import org.example.tuum.entity.AccountBalance;
 import org.example.tuum.entity.Currency;
 import org.example.tuum.entity.Direction;
 import org.example.tuum.entity.Transaction;
+import org.example.tuum.exception.AccountNotFoundException;
 import org.example.tuum.exception.InsufficientFundsException;
 import org.example.tuum.mapper.AccountBalanceMapper;
 import org.example.tuum.mapper.TransactionMapper;
+import org.example.tuum.messaging.BalanceUpdatedEvent;
+import org.example.tuum.messaging.RabbitMQPublisher;
+import org.example.tuum.messaging.TransactionCreatedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +30,8 @@ public class TransactionService {
     private final AccountBalanceMapper accountBalanceMapper;
 
     private final TransactionConverter transactionConverter;
+
+    private final RabbitMQPublisher rabbitMQPublisher;
 
     /**
      * Retrieves a list of transactions for a given account ID.
@@ -54,7 +60,7 @@ public class TransactionService {
         AccountBalance balance = accountBalanceMapper.findByAccountIdAndCurrency(accountId, currency);
 
         if (balance == null) {
-            throw new IllegalArgumentException("Account balance not found for account ID: " + accountId + " and currency: " + currency);
+            throw new AccountNotFoundException("Account balance not found for account ID: " + accountId + " and currency: " + currency);
         }
 
         BigDecimal currentAmount = balance.getAvailableAmount();
@@ -71,10 +77,27 @@ public class TransactionService {
 
         accountBalanceMapper.updateAvailableAmount(balance.getId(), newBalance);
 
+        rabbitMQPublisher.publishBalanceUpdated(
+                new BalanceUpdatedEvent(balance.getId(), accountId, balance.getCurrency(), newBalance)
+        );
+
         Transaction transaction = transactionConverter.toTransaction(request);
         transaction.setBalanceAfter(newBalance);
 
         transactionMapper.insert(transaction);
+
+        rabbitMQPublisher.publishTransactionCreated(
+                new TransactionCreatedEvent(
+                        transaction.getId(),
+                        transaction.getAccountId(),
+                        transaction.getAmount(),
+                        transaction.getCurrency(),
+                        transaction.getDirection(),
+                        transaction.getDescription(),
+                        transaction.getBalanceAfter(),
+                        transaction.getCreatedAt()
+                )
+        );
 
         return transactionConverter.toCreateTransactionResponse(transaction);
     }

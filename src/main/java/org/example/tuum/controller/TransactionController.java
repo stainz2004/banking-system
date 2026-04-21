@@ -6,6 +6,7 @@ import org.example.tuum.dto.CreateTransactionRequest;
 import org.example.tuum.dto.CreateTransactionResponse;
 import org.example.tuum.dto.TransactionsResponse;
 import org.example.tuum.service.TransactionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<List<TransactionsResponse>> getTransactionsByAccountId(@RequestParam Long accountId) {
-        return ResponseEntity.ok().body(transactionService.getTransactionsByAccountId(accountId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.getTransactionsByAccountId(accountId));
     }
 
     @PostMapping

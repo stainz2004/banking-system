@@ -13,5 +13,7 @@ import java.util.List;
 public interface AccountConverter {
     @Mapping(target = "id", ignore = true)
     Account toEntity(CreateAccountRequest request);
+
+    @Mapping(target = "accountId", source = "account.id")
     AccountResponse toResponse(Account account, List<BalanceResponse> balances);
 }

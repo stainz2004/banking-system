@@ -11,6 +11,9 @@ import org.example.tuum.entity.AccountBalance;
 import org.example.tuum.exception.AccountNotFoundException;
 import org.example.tuum.mapper.AccountBalanceMapper;
 import org.example.tuum.mapper.AccountMapper;
+import org.example.tuum.messaging.AccountBalanceCreatedEvent;
+import org.example.tuum.messaging.AccountCreatedEvent;
+import org.example.tuum.messaging.RabbitMQPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,8 @@ public class AccountService {
     private final AccountConverter accountConverter;
     private final AccountBalanceConverter accountBalanceConverter;
 
+    private final RabbitMQPublisher rabbitMQPublisher;
+
     /**
      * Creates a new account based on the provided request.
      *
@@ -39,6 +44,10 @@ public class AccountService {
 
         accountMapper.insert(account);
 
+        rabbitMQPublisher.publishAccountCreated(
+                new AccountCreatedEvent(account.getId(), account.getCustomerId(), account.getCountry())
+        );
+
         Long accountId = account.getId();
 
         List<BalanceResponse> balances = request.currencies().stream()
@@ -48,6 +57,11 @@ public class AccountService {
                     balance.setCurrency(currency);
                     balance.setAvailableAmount(BigDecimal.ZERO);
                     accountBalanceMapper.insert(balance);
+
+                    rabbitMQPublisher.publishAccountBalanceCreated(
+                            new AccountBalanceCreatedEvent(balance.getId(), accountId, currency, BigDecimal.ZERO)
+                    );
+
                     return new BalanceResponse(BigDecimal.ZERO, currency);
                 })
                 .toList();
