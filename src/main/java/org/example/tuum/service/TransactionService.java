@@ -9,7 +9,7 @@ import org.example.tuum.entity.AccountBalance;
 import org.example.tuum.entity.Currency;
 import org.example.tuum.entity.Direction;
 import org.example.tuum.entity.Transaction;
-import org.example.tuum.exception.InsufficeientFundsException;
+import org.example.tuum.exception.InsufficientFundsException;
 import org.example.tuum.mapper.AccountBalanceMapper;
 import org.example.tuum.mapper.TransactionMapper;
 import org.springframework.stereotype.Service;
@@ -65,7 +65,7 @@ public class TransactionService {
         } else {
             newBalance = currentAmount.subtract(request.amount());
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-                throw new InsufficeientFundsException("Not enough balance");
+                throw new InsufficientFundsException("Not enough balance");
             }
         }
 
