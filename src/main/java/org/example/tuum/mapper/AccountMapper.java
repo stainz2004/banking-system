@@ -11,6 +11,4 @@ public interface AccountMapper {
     void insert(Account account);
 
     Account findById(Long id);
-
-    List<Account> findAll();
 }
