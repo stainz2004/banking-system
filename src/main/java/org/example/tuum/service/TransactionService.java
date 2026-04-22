@@ -1,17 +1,16 @@
 package org.example.tuum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.tuum.converter.TransactionConverter;
 import org.example.tuum.dto.CreateTransactionRequest;
 import org.example.tuum.dto.CreateTransactionResponse;
 import org.example.tuum.dto.TransactionsResponse;
-import org.example.tuum.entity.AccountBalance;
-import org.example.tuum.entity.Currency;
-import org.example.tuum.entity.Direction;
-import org.example.tuum.entity.Transaction;
+import org.example.tuum.entity.*;
 import org.example.tuum.exception.AccountNotFoundException;
 import org.example.tuum.exception.InsufficientFundsException;
 import org.example.tuum.mapper.AccountBalanceMapper;
+import org.example.tuum.mapper.AccountMapper;
 import org.example.tuum.mapper.TransactionMapper;
 import org.example.tuum.messaging.BalanceUpdatedEvent;
 import org.example.tuum.messaging.RabbitMQPublisher;
@@ -22,12 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
 
     private final TransactionMapper transactionMapper;
     private final AccountBalanceMapper accountBalanceMapper;
+    private final AccountMapper accountMapper;
 
     private final TransactionConverter transactionConverter;
 
@@ -41,6 +42,13 @@ public class TransactionService {
      */
     @Transactional(readOnly = true)
     public List<TransactionsResponse> getTransactionsByAccountId(Long accountId) {
+
+        Account account = accountMapper.findById(accountId);
+
+        if (account == null) {
+            throw new AccountNotFoundException("Invalid account with ID: " + accountId);
+        }
+
         List<Transaction> transactions = transactionMapper.findByAccountId(accountId);
 
         return transactionConverter.toTransactionsResponse(transactions);
@@ -56,6 +64,9 @@ public class TransactionService {
     public CreateTransactionResponse createTransaction(CreateTransactionRequest request) {
         Long accountId = request.accountId();
         Currency currency = request.currency();
+
+        log.info("Creating transaction: accountId={}, currency={}, direction={}, amount={}",
+                accountId, currency, request.direction(), request.amount());
 
         AccountBalance balance = accountBalanceMapper.findByAccountIdAndCurrency(accountId, currency);
 
@@ -98,6 +109,9 @@ public class TransactionService {
                         transaction.getCreatedAt()
                 )
         );
+
+        log.info("Transaction created successfully: transactionId={}, accountId={}, direction={}, amount={}, balanceAfter={}",
+                transaction.getId(), accountId, request.direction(), request.amount(), newBalance);
 
         return transactionConverter.toCreateTransactionResponse(transaction);
     }

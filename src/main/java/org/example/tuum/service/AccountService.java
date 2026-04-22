@@ -1,6 +1,7 @@
 package org.example.tuum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.tuum.converter.AccountBalanceConverter;
 import org.example.tuum.converter.AccountConverter;
 import org.example.tuum.dto.BalanceResponse;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -40,6 +42,8 @@ public class AccountService {
      */
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
+        log.info("Creating account for customerId={}, currencies={}", request.customerId(), request.currencies());
+
         Account account = accountConverter.toEntity(request);
 
         accountMapper.insert(account);
@@ -66,6 +70,7 @@ public class AccountService {
                 })
                 .toList();
 
+        log.info("Account created successfully: accountId={}, customerId={}", accountId, account.getCustomerId());
         return new AccountResponse(account.getId(), account.getCustomerId(), balances);
     }
 
@@ -77,6 +82,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public AccountResponse getAccountByAccountId(Long accountId) {
+
         Account account = accountMapper.findById(accountId);
 
         if (account == null) {

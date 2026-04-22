@@ -12,8 +12,11 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TransactionConverter {
 
-    @Mapping(target= "transactionId", ignore = true)
+    @Mapping(target = "transactionId", source = "id")
+    TransactionsResponse toTransactionResponse(Transaction transaction);
+
     List<TransactionsResponse> toTransactionsResponse(List<Transaction> transactions);
+
 
     @Mapping(target= "id", ignore = true)
     @Mapping(target = "balanceAfter", ignore = true)
