@@ -25,12 +25,12 @@ public class TransactionController {
     @Operation(summary = "Get transactions by account ID")
     @GetMapping
     public ResponseEntity<List<TransactionsResponse>> getTransactionsByAccountId(@RequestParam Long accountId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.getTransactionsByAccountId(accountId));
+        return ResponseEntity.ok().body(transactionService.getTransactionsByAccountId(accountId));
     }
 
     @Operation(summary = "Create a new transaction")
     @PostMapping
     public ResponseEntity<CreateTransactionResponse> createTransaction(@RequestBody @Valid CreateTransactionRequest request) {
-        return ResponseEntity.ok().body(transactionService.createTransaction(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.createTransaction(request));
     }
 }

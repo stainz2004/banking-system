@@ -200,7 +200,7 @@ class AccountControllerIT extends BaseIntegrationTest {
                             .param("accountId", String.valueOf(accountId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.accountId").value(accountId))
-                    .andExpect(jsonPath("$.customerId").value("customer-get-001"))
+                    .andExpect(jsonPath("$.customerId").value("customer-001"))
                     .andExpect(jsonPath("$.balances", hasSize(2)))
                     .andExpect(jsonPath("$.balances[*].currency",
                             containsInAnyOrder("GBP", "EUR")));
