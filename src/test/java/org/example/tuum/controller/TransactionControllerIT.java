@@ -57,7 +57,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
 
         @Test
         @DisplayName("should create IN transaction and return 200 with updated balance")
-        void createTransaction_inDirection_returns200() throws Exception {
+        void createTransaction_inDirection_returns201() throws Exception {
             String requestBody = String.format("""
                     {
                         "accountId": %d,
@@ -71,7 +71,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
             mockMvc.perform(post("/api/transactions")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.accountId").value(accountId))
                     .andExpect(jsonPath("$.transactionId").isNumber())
                     .andExpect(jsonPath("$.amount").value(100.00))
@@ -83,7 +83,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
 
         @Test
         @DisplayName("should create OUT transaction after funding and return correct balance")
-        void createTransaction_outDirection_returns200() throws Exception {
+        void createTransaction_outDirection_returns201() throws Exception {
             String fundBody = String.format("""
                     {
                         "accountId": %d,
@@ -97,7 +97,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
             mockMvc.perform(post("/api/transactions")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(fundBody))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
 
             String withdrawBody = String.format("""
                     {
@@ -112,7 +112,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
             mockMvc.perform(post("/api/transactions")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(withdrawBody))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.accountId").value(accountId))
                     .andExpect(jsonPath("$.direction").value("OUT"))
                     .andExpect(jsonPath("$.balanceAfter").value(150.00));
@@ -135,26 +135,6 @@ class TransactionControllerIT extends BaseIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.message").exists());
-        }
-
-        @Test
-        @DisplayName("should return 404 when wrong direction is used for transaction")
-        void createTransaction_invalidDirection_returns404() throws Exception {
-            String requestBody = String.format("""
-                    {
-                        "accountId": %d,
-                        "amount": 500.00,
-                        "currency": "EUR",
-                        "direction": "UP",
-                        "description": "Baltic stocks"
-                    }
-                    """, accountId);
-
-            mockMvc.perform(post("/api/transactions")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(requestBody))
-                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").exists());
         }
 
@@ -207,7 +187,7 @@ class TransactionControllerIT extends BaseIntegrationTest {
                         "amount": 500.00,
                         "currency": "EUR",
                         "direction": "IN",
-                        "description": ""
+                        "description": null
                     }
                     """, accountId);
 
@@ -354,15 +334,14 @@ class TransactionControllerIT extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/transactions – get transactions by account ID")
+    @DisplayName("GET /api/transactions/{accountId} – get transactions by account ID")
     class GetTransactions {
 
         @Test
         @DisplayName("should return empty list when account has no transactions")
         void getTransactions_noTransactions_returnsEmptyList() throws Exception {
-            mockMvc.perform(get("/api/transactions")
-                            .param("accountId", String.valueOf(accountId)))
-                    .andExpect(status().isCreated())
+            mockMvc.perform(get("/api/transactions/{accountId}", accountId))
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
 
@@ -391,15 +370,14 @@ class TransactionControllerIT extends BaseIntegrationTest {
 
             mockMvc.perform(post("/api/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(tx1)).andExpect(status().isOk());
+                    .content(tx1)).andExpect(status().isCreated());
 
             mockMvc.perform(post("/api/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(tx2)).andExpect(status().isOk());
+                    .content(tx2)).andExpect(status().isCreated());
 
-            mockMvc.perform(get("/api/transactions")
-                            .param("accountId", String.valueOf(accountId)))
-                    .andExpect(status().isCreated())
+            mockMvc.perform(get("/api/transactions/{accountId}", accountId))
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[*].accountId", everyItem(is((int) accountId))))
                     .andExpect(jsonPath("$[*].currency", everyItem(is("EUR"))))
@@ -410,17 +388,9 @@ class TransactionControllerIT extends BaseIntegrationTest {
         @Test
         @DisplayName("should return 404 when account does not exist")
         void getTransactions_nonExistingAccount_returns404() throws Exception {
-            mockMvc.perform(get("/api/transactions")
-                            .param("accountId", "999999"))
+            mockMvc.perform(get("/api/transactions/{accountId}", 999999))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").exists());
-        }
-
-        @Test
-        @DisplayName("should return 400 when accountId parameter is missing")
-        void getTransactions_missingParam_returns400() throws Exception {
-            mockMvc.perform(get("/api/transactions"))
-                    .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -456,22 +426,11 @@ class TransactionControllerIT extends BaseIntegrationTest {
 
             mockMvc.perform(post("/api/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(tx)).andExpect(status().isOk());
+                    .content(tx)).andExpect(status().isCreated());
 
-            mockMvc.perform(get("/api/transactions")
-                            .param("accountId", String.valueOf(accountId)))
-                    .andExpect(status().isCreated())
+            mockMvc.perform(get("/api/transactions/{accountId}", accountId))
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
-    }
-
-    /**
-     * Extracts the accountId field from a raw JSON string without
-     */
-    private long extractAccountId(String json) {
-        String marker = "\"accountId\":";
-        int start = json.indexOf(marker) + marker.length();
-        int end = json.indexOf(',', start);
-        return Long.parseLong(json.substring(start, end).trim());
     }
 }

@@ -171,7 +171,7 @@ class AccountControllerIT extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/accounts – get account by ID")
+    @DisplayName("GET /api/accounts/{accountId} – get account by ID")
     class GetAccount {
 
         @Test
@@ -196,8 +196,7 @@ class AccountControllerIT extends BaseIntegrationTest {
 
             long accountId = extractAccountId(createResponse);
 
-            mockMvc.perform(get("/api/accounts")
-                            .param("accountId", String.valueOf(accountId)))
+            mockMvc.perform(get("/api/accounts/{accountId}", accountId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.accountId").value(accountId))
                     .andExpect(jsonPath("$.customerId").value("customer-001"))
@@ -209,27 +208,9 @@ class AccountControllerIT extends BaseIntegrationTest {
         @Test
         @DisplayName("should return 404 when account does not exist")
         void getAccount_nonExistingId_returns404() throws Exception {
-            mockMvc.perform(get("/api/accounts")
-                            .param("accountId", "999999"))
+            mockMvc.perform(get("/api/accounts/{accountId}", 999999))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").exists());
         }
-
-        @Test
-        @DisplayName("should return 400 when accountId parameter is missing")
-        void getAccount_missingParam_returns400() throws Exception {
-            mockMvc.perform(get("/api/accounts"))
-                    .andExpect(status().isBadRequest());
-        }
-    }
-
-    /**
-     * Extracts the accountId field from a raw JSON string without
-     */
-    private long extractAccountId(String json) {
-        String marker = "\"accountId\":";
-        int start = json.indexOf(marker) + marker.length();
-        int end = json.indexOf(',', start);
-        return Long.parseLong(json.substring(start, end).trim());
     }
 }

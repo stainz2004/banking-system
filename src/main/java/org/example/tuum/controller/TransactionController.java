@@ -23,8 +23,8 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @Operation(summary = "Get transactions by account ID")
-    @GetMapping
-    public ResponseEntity<List<TransactionsResponse>> getTransactionsByAccountId(@RequestParam Long accountId) {
+    @GetMapping("/{accountId}")
+    public ResponseEntity<List<TransactionsResponse>> getTransactionsByAccountId(@PathVariable Long accountId) {
         return ResponseEntity.ok().body(transactionService.getTransactionsByAccountId(accountId));
     }
 

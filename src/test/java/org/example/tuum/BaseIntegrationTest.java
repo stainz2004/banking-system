@@ -67,4 +67,14 @@ public abstract class BaseIntegrationTest {
      */
     @MockitoBean
     protected RabbitTemplate rabbitTemplate;
+
+    /**
+     * Extracts the accountId field from a raw JSON string without
+     */
+    protected long extractAccountId(String json) {
+        String marker = "\"accountId\":";
+        int start = json.indexOf(marker) + marker.length();
+        int end = json.indexOf(',', start);
+        return Long.parseLong(json.substring(start, end).trim());
+    }
 }
