@@ -4,6 +4,7 @@ import org.example.tuum.dto.CreateTransactionRequest;
 import org.example.tuum.dto.CreateTransactionResponse;
 import org.example.tuum.dto.TransactionsResponse;
 import org.example.tuum.entity.Transaction;
+import org.example.tuum.messaging.TransactionCreatedEvent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -25,4 +26,7 @@ public interface TransactionConverter {
 
     @Mapping(target = "transactionId", source = "transaction.id")
     CreateTransactionResponse toCreateTransactionResponse(Transaction transaction);
+
+    @Mapping(target = "transactionId", source = "id")
+    TransactionCreatedEvent toTransactionCreatedEvent(Transaction transaction);
 }

@@ -14,7 +14,6 @@ import org.example.tuum.mapper.AccountMapper;
 import org.example.tuum.mapper.TransactionMapper;
 import org.example.tuum.messaging.BalanceUpdatedEvent;
 import org.example.tuum.messaging.RabbitMQPublisher;
-import org.example.tuum.messaging.TransactionCreatedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,6 @@ public class TransactionService {
      */
     @Transactional(readOnly = true)
     public List<TransactionsResponse> getTransactionsByAccountId(Long accountId) {
-
         Account account = accountMapper.findById(accountId);
 
         if (account == null) {
@@ -98,16 +96,7 @@ public class TransactionService {
         transactionMapper.insert(transaction);
 
         rabbitMQPublisher.publishTransactionCreated(
-                new TransactionCreatedEvent(
-                        transaction.getId(),
-                        transaction.getAccountId(),
-                        transaction.getAmount(),
-                        transaction.getCurrency(),
-                        transaction.getDirection(),
-                        transaction.getDescription(),
-                        transaction.getBalanceAfter(),
-                        transaction.getCreatedAt()
-                )
+                transactionConverter.toTransactionCreatedEvent(transaction)
         );
 
         log.info("Transaction created successfully: transactionId={}, accountId={}, direction={}, amount={}, balanceAfter={}",

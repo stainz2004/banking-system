@@ -54,6 +54,7 @@ public class AccountService {
 
         Long accountId = account.getId();
 
+        // Create all balances for the account and publish events
         List<BalanceResponse> balances = request.currencies().stream()
                 .map(currency -> {
                     AccountBalance balance = new AccountBalance();
